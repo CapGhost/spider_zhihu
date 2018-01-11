@@ -3,12 +3,15 @@
 	 v1.5 识别收藏内有效链接，按内容标题生成文件夹，修复了同一个问题下两个答案保存混乱的问题
 
 	TODO：封装
-	潜在bug：发现两个。
-	1.部分知乎文章的图源标签混乱，会导致图片数量不对。
-	2.部分回答（似乎是敏感回答）会导致登录后才能查看。由于本代码没有读取登录cookie，而且知乎在2017年10月左右，
-	更改了UA验证，导致无法提交正确的post包。需要破解大神的支援（对比之下验证码的破解似乎不难）
+	bug：
+	1.部分知乎文章的图源标签混乱，会导致图片数量不对。比如此文章，https://zhuanlan.zhihu.com/p/26102000，由于图太小，标签既没有data-original的属性，也没有data-actualsrc的属性
+	2.部分回答（似乎是敏感回答）会导致登录后才能查看。由于本代码没有读取登录cookie，而且知乎在2017年10月左右，更改了UA验证，导致无法提交正确的post包。
+	  需要破解大神的支援（对比之下验证码的破解似乎不难）
+	3.部分知乎文章会出现乱码。比如此文章，https://zhuanlan.zhihu.com/p/27560679，通过IDLE可以看到，汉字内容不再显示为汉字，而是以“\u0213”之类的形式出现。
+	  IDLE可以把\u的unicode字符识别为汉字，但是在程序里就成为了乱码。希望有大神能指点这个怎么处理。编码是utf-8的，这个没有问题。
 
-	至于标点符号啊、<code>标签、生成word文档的正文字体啊、知乎文章题图不进行爬取啊等等细节。。。实在不想处理了，太麻烦了 
+
+	至于标点符号啊、<code>标签、生成word文档的正文字体啊、知乎文章题图不进行爬取啊等等细节。。。实在不想处理了
 
 '''
 
@@ -39,7 +42,7 @@ def get_pic_url(content):		#解析网页中图片的url，content形参为html.t
 	url_list=[]	
 	for i in data:
 		try:
-			if 'data-original' in i.attrs:								#知乎里图片有时候只有data-original属性，有时候只有data-actualsrc属性，有时候两个都有。。。我也很头疼怎么处理才完美
+			if 'data-original' in i.attrs:								#知乎里图片有时候只有data-original属性，有时候只有data-actualsrc属性，有时候两个都有，有时候两个都没有。。。我也很头疼怎么处理才完美
 				url_list.append(i.attrs['data-original'])				#只有data-actualsrc属性的图片，貌似都不重要
 #			if 'data-actualsrc' in i.attrs:
 #				url_list.append(i.attrs['data-actualsrc'])	
@@ -79,13 +82,13 @@ def get_text(content):		#解析网页中的文本，content形参为html.text
 
 	cnt=0		#图片计数
 
-#	pat_text=r'\>[^\<]+\<|data-original=".*?"'							#	>文字内容< 或者 data-actualsrc="https://pic1.zhimg.com/v2-d69c8bcbc07db60932a5ff0be4fb16ea_b.jpg"
+#	pat_text=r'\>[^\<]+\<|data-original=".*?"'							#	>文字内容< 或者 data-original="https://pic1.zhimg.com/v2-d69c8bcbc07db60932a5ff0be4fb16ea_b.jpg"
 	pat_text=r'\>[^\<]+\<|<img(.*?)>'
 	pat_picurl=r'data-original=".*?"'
 	temp=re.findall(pat_text,str(data))
 
 	for t in temp:
-		if 'zh-lightbox-thumb lazy' in t and re.search(pat_picurl,t):
+		if 'zh-lightbox-thumb lazy' in t and re.search(pat_picurl,t):	#会出现两次图片源，一次以zh-lightbox-thumb lazy为属性，一次以zh-lightbox-thumb为属性，只取一次
 			text.append('图片'+str(cnt)+'\n')
 			cnt=cnt+1
 		else:
@@ -182,7 +185,7 @@ def get_url_from_collection(url):
 			data_dup.append('https://www.zhihu.com'+data_temp[i])
 		if 'zhuanlan' in data_temp[i]:
 			data_dup.append(data_temp[i])
-	data=list(set(data_dup))
+	data=list(set(data_dup))																	#去掉重复的href
 	data.sort(key=data_dup.index)			
 	print(data)	
 	return data
@@ -196,7 +199,7 @@ def main():
 
 	collection_url=input("输入你的知乎收藏文件夹的网址，输入回车则选择缺省网址：\n")
 	if(collection_url==''):
-		collection_url='https://www.zhihu.com/collection/211012874'
+		collection_url='https://www.zhihu.com/collection/211012874'								#缺省了收藏链接
 #	root=save_path()								#1.4版用
 
 	url_list=get_url_from_collection(collection_url)
