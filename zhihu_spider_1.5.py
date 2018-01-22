@@ -8,15 +8,14 @@
 	2.部分回答（似乎是敏感回答）会导致登录后才能查看。由于本代码没有读取登录cookie，而且知乎在2017年10月左右，更改了UA验证，导致无法提交正确的post包。
 	  需要破解大神的支援（对比之下验证码的破解似乎不难）
 	3.部分知乎文章会出现乱码。比如此文章，https://zhuanlan.zhihu.com/p/27560679，通过IDLE可以看到，汉字内容不再显示为汉字，而是以“\u0213”之类的形式出现。
-	  IDLE可以把\u的unicode字符识别为汉字，但是在程序里就成为了乱码。希望有大神能指点这个怎么处理。编码是utf-8的，这个没有问题。
+	  IDLE可以把unicode字符识别为汉字，但是在程序里就成为了乱码。希望有大神能指点这个怎么处理。编码是utf-8的，这个没有问题。
 
 
 	至于标点符号啊、<code>标签、生成word文档的正文字体啊、知乎文章题图不进行爬取啊等等细节。。。实在不想处理了
-
 '''
 
 import requests
-import time
+	
 from bs4 import BeautifulSoup
 import os
 import re
@@ -83,7 +82,7 @@ def get_text(content):		#解析网页中的文本，content形参为html.text
 	cnt=0		#图片计数
 
 #	pat_text=r'\>[^\<]+\<|data-original=".*?"'							#	>文字内容< 或者 data-original="https://pic1.zhimg.com/v2-d69c8bcbc07db60932a5ff0be4fb16ea_b.jpg"
-	pat_text=r'\>[^\<]+\<|<img(.*?)>'
+	pat_text=r'>[^<]+<|<img.*?>'									#	>文字内容< 或者 <img src="data:image/svg+xml;utf8,&lt;svg%20xmlns='http://www.w3.org/2000/svg'%20width='1200'%20height='800'&gt;&lt;/svg&gt;" data-caption="" data-size="normal" data-rawwidth="1200" data-rawheight="800" class="origin_image zh-lightbox-thumb lazy" width="1200" data-original="https://pic2.zhimg.com/v2-0d3ece1038e6e32069c719ab917c5101_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-0d3ece1038e6e32069c719ab917c5101_b.jpg">
 	pat_picurl=r'data-original=".*?"'
 	temp=re.findall(pat_text,str(data))
 
@@ -199,7 +198,7 @@ def main():
 
 	collection_url=input("输入你的知乎收藏文件夹的网址，输入回车则选择缺省网址：\n")
 	if(collection_url==''):
-		collection_url='https://www.zhihu.com/collection/211012874'								#缺省了收藏链接
+		collection_url='https://www.zhihu.com/collection/214546663'								#缺省了收藏链接
 #	root=save_path()								#1.4版用
 
 	url_list=get_url_from_collection(collection_url)
